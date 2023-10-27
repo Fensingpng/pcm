@@ -2,6 +2,9 @@
 #include "ui_mainwindow.h"
 #include "qcustomplot.h"
 
+
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -9,10 +12,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // Создание объекта CustomPlot
-    QCustomPlot *customPlot = new QCustomPlot(this);
+    QCustomPlot *sign = new QCustomPlot(this);
 
     // Чтение данных из файла PCM
-    QFile file("C:/qtt/43 c++/Часть 1.pcm");
+    QFile file("C:/Users/Admin/Desktop/43c1/часть 1.pcm");
     file.open(QIODevice::ReadOnly);
     QByteArray rawData = file.readAll();
     file.close();
@@ -30,30 +33,82 @@ MainWindow::MainWindow(QWidget *parent)
     for(int i = 0; i < sampleCount; i++) {
         // Чтение сэмпла из данных PCM
         qint16 sample = *reinterpret_cast<const qint16*>(rawData.constData() + i * sizeof(qint16));
-
-        // Вычисление времени для каждого сэмпла
         time[i] = i;
 
-        // Преобразование сэмпла в сигнал (если необходимо)
         signal[i] = sample;
     }
 
     // Установка данных на графике
-    customPlot->addGraph();
-    customPlot->graph(0)->setData(time, signal);
+    sign->addGraph();
+    sign->graph(0)->setData(time, signal);
 
     // Управление масштабированием и перемещением графика
-    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    sign->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
 
     // Оси координат
-    customPlot->xAxis->setLabel("Time");
-    customPlot->yAxis->setLabel("Signal");
+    sign->xAxis->setLabel("Time");
+    sign->yAxis->setLabel("Signal");
 
     // Отображение графика
-    customPlot->replot();
+    sign->replot();
 
     // Добавление графика на главное окно
-    setCentralWidget(customPlot);
+    setCentralWidget(sign);
+
+
+
+
+    //-----------------------------------------------------------------------
+    //Построение графика спектра
+
+    fftw_complex *in, *out;
+    fftw_plan plan;
+
+    int N = sampleCount; // Размер входных данных
+
+    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
+    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
+
+    // Создание плана для преобразования Фурье
+    plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+
+
+    for (int i = 0; i < sampleCount; i++) {
+        qint16 sample = *reinterpret_cast<const qint16*>(rawData.constData() + i * sizeof(qint16));
+        in[i][0] = sample; // Вещественная часть
+        in[i][1] = 0;      // Мнимая часть
+    }
+
+    fftw_execute(plan);
+
+    double* spectrum = new double[N];
+
+    for (int i = 0; i < N; i++) {
+        double real = out[i][0];
+        double imaginary = out[i][1];
+        spectrum[i] = sqrt(real * real + imaginary * imaginary);
+    }
+
+
+    QCustomPlot *spectr =  new QCustomPlot(this);
+    QCustomPlot();
+    spectr->xAxis->setLabel("Frequency");
+    spectr->yAxis->setLabel("Amplitude");
+
+    QVector<double> xData(N);
+    QVector<double> yData(N);
+    for(int i = 0; i < N; i++) {
+        xData[i] = i; // Частота
+        yData[i] = spectrum[i]; // Амплитуда
+    }
+    QCPGraph* graph = spectr->addGraph();
+    graph->setData(xData, yData);
+    // Отображение графика
+    spectr->replot();
+
+    // Добавление графика на главное окно
+    setCentralWidget(spectr);
+
 }
 
 MainWindow::~MainWindow()

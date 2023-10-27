@@ -1,7 +1,12 @@
-QT       += core gui printsupport
+QT       += core gui
+QT += datavisualization
+INCLUDEPATH += C:/Users/Admin/Desktop/43c1/fftw
+LIBS +=  C:/Users/Admin/Desktop/43c1/fftw/libfftw3-3.a\
+         C:/Users/Admin/Desktop/43c1/fftw/libfftw3f-3.a\
+         C:/Users/Admin/Desktop/43c1/fftw/libfftw3l-3.a
 
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 CONFIG += c++11
 
