@@ -1,7 +1,8 @@
 QT       += core gui
 QT += datavisualization
 INCLUDEPATH += C:/43c2/fftw
-LIBS +=  C:/43c2/fftw/libfftw3-3.a\
+LIBS +=  -LC:/43c2/fftw -lfftw3-3\
+        C:/43c2/fftw/libfftw3-3.a\
          C:/43c2/fftw/libfftw3f-3.a\
          C:/43c2/fftw/libfftw3l-3.a
 

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "qcustomplot.h"
+#include "QDebug"
 
 
 
@@ -15,7 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
     QCustomPlot *sign = new QCustomPlot(this);
     QCustomPlot *real = new QCustomPlot(this);
     QCustomPlot *imag = new QCustomPlot(this);
-    QCustomPlot* customPlot = new QCustomPlot();
+    QCustomPlot *spectr =  new QCustomPlot(this);
+
 
 
     // Чтение данных из файла PCM
@@ -46,53 +48,44 @@ MainWindow::MainWindow(QWidget *parent)
     }
     //-----------------------------------------------------------------------
     //спектр
-//    fftw_complex* fftInput = fftw_alloc_complex(sampleCount);
-//    fftw_complex* fftOutput = fftw_alloc_complex(sampleCount);
-//    fftw_plan plan = fftw_plan_dft_1d(sampleCount, fftInput, fftOutput, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_complex *in, *out;
+      fftw_plan plan;
 
-//    for(int i = 0; i < sampleCount; i++) {
-//        fftInput[i][0] = time[i];
-//        fftInput[i][1] = signal[i];
-//    }
+      int N = sampleCount; // Размер входных данных
 
-//    fftw_execute(plan);
+      in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
+      out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
 
-
-
-//    QVector<double> frequencies(sampleCount/2);
-//    QVector<double> amplitudes(sampleCount/2);
-//    double frequencyStep = 1.0 / (sampleCount * 2);
-
-//    for(int i = 0; i < sampleCount/2; i++) {
-//        double frequency = i * frequencyStep;
-//        double magnitude = sqrt(fftOutput[i][0] * fftOutput[i][0] + fftOutput[i][1] * fftOutput[i][1]);
-
-//        frequencies[i] = frequency;
-//        amplitudes[i] = magnitude;
+      // Создание плана для преобразования Фурье
+      plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
 
-//    }
+      for (int i = 0; i < sampleCount; i++) {
+          qint16 sample = *reinterpret_cast<const qint16*>(rawData.constData() + i * sizeof(qint16));
+          in[i][0] = sample; // Вещественная часть
+          in[i][1] = 0;      // Мнимая часть
+      }
 
+      fftw_execute(plan);
 
-//    customPlot->setWindowTitle("Spectrum Plot");
-//    customPlot->xAxis->setLabel("Frequency");
-//    customPlot->yAxis->setLabel("Amplitude");
-//    customPlot->legend->setVisible(true);
-//    customPlot->addGraph();
-//    customPlot->graph(0)->setData(frequencies, amplitudes);
-//    customPlot->xAxis->setRange(0, 0.5);
-//    customPlot->yAxis->setRange(0, *std::max_element(amplitudes.begin(), amplitudes.end()));
+      double* spectrum = new double[N];
 
-
-
-//    fftw_destroy_plan(plan);
-//    fftw_free(fftInput);
-//    fftw_free(fftOutput);
+      for (int i = 0; i < N; i++) {
+          double real = out[i][0];
+          double imaginary = out[i][1];
+          spectrum[i] = sqrt(real * real + imaginary * imaginary);
+      }
 
 
 
 
 
+      QVector<double> xData(N);
+      QVector<double> yData(N);
+      for(int i = 0; i < N; i++) {
+          xData[i] = i; // Частота
+          yData[i] = spectrum[i]; // Амплитуда
+      }
 
 
 
@@ -124,7 +117,15 @@ MainWindow::MainWindow(QWidget *parent)
     imag->yAxis->setLabel("Phase");
     imag->setGeometry(0,500,700,500);
 
-    customPlot->replot();
+
+    spectr->addGraph();
+    spectr->graph(0)->setData(xData, yData);
+    spectr->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    spectr->xAxis->setLabel("Frequency");
+    spectr->yAxis->setLabel("Amplitude");
+    spectr->setGeometry(700,500,700,500);
+
+    spectr->replot();
     imag->replot();
     real->replot();
     sign->replot();
