@@ -6,6 +6,7 @@
 
 
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -21,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // Чтение данных из файла PCM
-    QFile file("C:/43c2/часть 1.pcm");
+    QFile file("C:/Users/Admin/Desktop/pcm-main/43c2/часть 1.pcm");
     file.open(QIODevice::ReadOnly);
     QByteArray rawData = file.readAll();
     file.close();
@@ -49,43 +50,43 @@ MainWindow::MainWindow(QWidget *parent)
     //-----------------------------------------------------------------------
     //спектр
     fftw_complex *in, *out;
-      fftw_plan plan;
+    fftw_plan plan;
 
-      int N = sampleCount; // Размер входных данных
+    int N = sampleCount; // Размер входных данных
 
-      in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
-      out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
+    in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
+    out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) *N);
 
-      // Создание плана для преобразования Фурье
-      plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-
-
-      for (int i = 0; i < sampleCount; i++) {
-          qint16 sample = *reinterpret_cast<const qint16*>(rawData.constData() + i * sizeof(qint16));
-          in[i][0] = sample; // Вещественная часть
-          in[i][1] = 0;      // Мнимая часть
-      }
-
-      fftw_execute(plan);
-
-      double* spectrum = new double[N];
-
-      for (int i = 0; i < N; i++) {
-          double real = out[i][0];
-          double imaginary = out[i][1];
-          spectrum[i] = sqrt(real * real + imaginary * imaginary);
-      }
+    // Создание плана для преобразования Фурье
+    plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
 
+    for (int i = 0; i < sampleCount; i++) {
+        qint16 sample = *reinterpret_cast<const qint16*>(rawData.constData() + i * sizeof(qint16));
+        in[i][0] = sample; // Вещественная часть
+        in[i][1] = 0;      // Мнимая часть
+    }
+
+    fftw_execute(plan);
+
+    double* spectrum = new double[N];
+
+    for (int i = 0; i < N; i++) {
+        double real = out[i][0];
+        double imaginary = out[i][1];
+        spectrum[i] = sqrt(real * real + imaginary * imaginary);
+    }
 
 
 
-      QVector<double> xData(N);
-      QVector<double> yData(N);
-      for(int i = 0; i < N; i++) {
-          xData[i] = i; // Частота
-          yData[i] = spectrum[i]; // Амплитуда
-      }
+
+
+    QVector<double> xData(N);
+    QVector<double> yData(N);
+    for(int i = 0; i < N; i++) {
+        xData[i] = i; // Частота
+        yData[i] = spectrum[i]; // Амплитуда
+    }
 
 
 
