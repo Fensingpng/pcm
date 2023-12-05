@@ -1,10 +1,7 @@
 QT       += core gui
 QT += datavisualization
-INCLUDEPATH += C:/Users/Admin/Desktop/pcm-main/43c2/fftw
-LIBS +=  -LC:/Users/Admin/Desktop/pcm-main/43c2/fftw -lfftw3-3\
-        C:/Users/Admin/Desktop/pcm-main/43c2/fftw/libfftw3-3.a\
-         C:/Users/Admin/Desktop/pcm-main/43c2/fftw/libfftw3f-3.a\
-         C:/Users/Admin/Desktop/pcm-main/43c2/fftw/libfftw3l-3.a
+INCLUDEPATH += ./fftw
+LIBS +=  -L
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
