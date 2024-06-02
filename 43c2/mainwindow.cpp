@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     const QVector<double>& x = signalProcessor.getX();
     const QVector<double>& y = signalProcessor.getY();
 
-    // Создаём окно для отображения графика сигнала
+    // Создаём окно для отображения графика  временного представления сигнала
     QMainWindow *signWindow = new QMainWindow();
     QCustomPlot *sign = new QCustomPlot(signWindow);
     sign->addGraph();
@@ -69,8 +69,6 @@ MainWindow::MainWindow(QWidget *parent)
 
         double averageSpectrum = (sum / (spectrum.size()))*100;
         double thresholdValue = averageSpectrum + threshold;
-
-
         if (thresholdValue < maxSpectrum) {
             double minFrequency  =sampleRate + (start * Gerz);
             double maxFrequency  =sampleRate + (end * Gerz);
