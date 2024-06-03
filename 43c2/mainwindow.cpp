@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     double sampleRate = 600e6; // Частота дискретизации 600 МГц
     double Diap = 2e6;
     double Gerz=Diap/x.size();
+    bool previousDetected = false;
 
 
     for (int i = 0; i < numMeasurements; ++i) {
@@ -70,18 +71,23 @@ MainWindow::MainWindow(QWidget *parent)
         double averageSpectrum = (sum / (spectrum.size()))*100;
         double thresholdValue = averageSpectrum + threshold;
         if (thresholdValue < maxSpectrum) {
-            double minFrequency  =sampleRate + (start * Gerz);
-            double maxFrequency  =sampleRate + (end * Gerz);
-            QString minFrequencyStr = QString::number(minFrequency, 'f', 0);
-            QString maxFrequencyStr = QString::number(maxFrequency, 'f', 0);
-            QString thresholdStr = QString::number(thresholdValue, 'f', 2);
-            QString maxSpectrumStr = QString::number(maxSpectrum, 'f', 2);
-            qDebug() << "Drone detected in segment Гц" << minFrequencyStr << "to Гц" << maxFrequencyStr ;
-            qDebug() << "Drone detected in time" << packetSize + start  << "to" <<packetSize + end ;
-            qDebug() << "Threshold:" << thresholdStr << "Max Spectrum:" << maxSpectrumStr;
-        }
-    }
-}
+            if (!previousDetected) {
+                double minFrequency  =sampleRate + (start * Gerz);
+                double maxFrequency  =sampleRate + (end * Gerz);
+                QString minFrequencyStr = QString::number(minFrequency, 'f', 0);
+                QString maxFrequencyStr = QString::number(maxFrequency, 'f', 0);
+                QString thresholdStr = QString::number(thresholdValue, 'f', 2);
+                QString maxSpectrumStr = QString::number(maxSpectrum, 'f', 2);
+                qDebug() << "Drone detected in segment Гц" << minFrequencyStr << "to Гц" << maxFrequencyStr ;
+                qDebug() << "Drone detected in time" << packetSize + start  << "to" <<packetSize + end ;
+                qDebug() << "Threshold:" << thresholdStr << "Max Spectrum:" << maxSpectrumStr;
+            }
+               previousDetected = true; // Устанавливаем флаг, что текущий сегмент обнаружен
+           } else {
+               previousDetected = false; // Сбрасываем флаг, если текущий сегмент не обнаружен
+           }
+       }
+   }
 
 MainWindow::~MainWindow()
 {
