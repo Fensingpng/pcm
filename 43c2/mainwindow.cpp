@@ -15,16 +15,16 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // Создаём объект loader для считывания файла
+    // Создаём объект loader для считывания данных с RTL-SDR
     DataLoader loader;
-    QByteArray rawData = loader.readData("C:/Qt/pcm-main/signal/Ft.pcm");
+    QByteArray rawData = loader.readDataFromRTLSDR();
 
-    // Создаём объект signalProcessor для формирования двух массивов из файла
+    // Создаём объект signalProcessor для формирования двух массивов из данных
     SignalProcessor signalProcessor(rawData);
     const QVector<double>& x = signalProcessor.getX();
     const QVector<double>& y = signalProcessor.getY();
 
-    // Создаём окно для отображения графика  временного представления сигнала
+    // Создаём окно для отображения графика временного представления сигнала
     QMainWindow *signWindow = new QMainWindow();
     QCustomPlot *sign = new QCustomPlot(signWindow);
     sign->addGraph();
@@ -44,9 +44,8 @@ MainWindow::MainWindow(QWidget *parent)
     int numMeasurements = 500;
     double sampleRate = 600e6; // Частота дискретизации 600 МГц
     double Diap = 2e6;
-    double Gerz=Diap/x.size();
+    double Gerz = Diap / x.size();
     bool previousDetected = false;
-
 
     for (int i = 0; i < numMeasurements; ++i) {
         int start = i * packetSize;
@@ -68,28 +67,27 @@ MainWindow::MainWindow(QWidget *parent)
             }
         }
 
-        double averageSpectrum = (sum / (spectrum.size()))*100;
+        double averageSpectrum = (sum / (spectrum.size())) * 100;
         double thresholdValue = averageSpectrum + threshold;
         if (thresholdValue < maxSpectrum) {
             if (!previousDetected) {
-                double minFrequency  =sampleRate + (start * Gerz);
-                double maxFrequency  =sampleRate + (end * Gerz);
+                double minFrequency = sampleRate + (start * Gerz);
+                double maxFrequency = sampleRate + (end * Gerz);
                 QString minFrequencyStr = QString::number(minFrequency, 'f', 0);
                 QString maxFrequencyStr = QString::number(maxFrequency, 'f', 0);
                 QString thresholdStr = QString::number(thresholdValue, 'f', 2);
                 QString maxSpectrumStr = QString::number(maxSpectrum, 'f', 2);
-                qDebug() << "Drone detected in segment Гц" << minFrequencyStr << "to Гц" << maxFrequencyStr ;
-                qDebug() << "Drone detected in time" << packetSize + start  << "to" <<packetSize + end ;
+                qDebug() << "Drone detected in segment Гц" << minFrequencyStr << "to Гц" << maxFrequencyStr;
+                qDebug() << "Drone detected in time" << packetSize + start << "to" << packetSize + end;
                 qDebug() << "Threshold:" << thresholdStr << "Max Spectrum:" << maxSpectrumStr;
             }
-               previousDetected = true; // Устанавливаем флаг, что текущий сегмент обнаружен
-           } else {
-               previousDetected = false; // Сбрасываем флаг, если текущий сегмент не обнаружен
-           }
-       }
-   }
+            previousDetected = true;
+        } else {
+            previousDetected = false;
+        }
+    }
+}
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }

@@ -1,28 +1,27 @@
-QT       += core gui
+QT += core gui
 QT += datavisualization
-INCLUDEPATH += $$PWD/../fftw
-LIBS +=  -L$$PWD/../fftw -lfftw3-3 \
-         $$PWD/../fftw/libfftw3-3.a \
-         $$PWD/../fftw/libfftw3f-3.a \
-         $$PWD/../fftw/libfftw3l-3.a
-
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 CONFIG += c++11
 
+# Указываем пути к заголовочным файлам
+INCLUDEPATH += $$PWD/../bibl/fftw \
+               $$PWD/../bibl/rtl-sdr-master/include \
+               $$PWD/../bibl/libusb
 
-# The following define makes your compiler emit warnings if you use
-# any Qt feature that has been marked deprecated (the exact warnings
-# depend on your compiler). Please consult the documentation of the
-# deprecated API in order to know how to port your code away from it.
+# Указываем пути к библиотекам и сами библиотеки
+LIBS += -L$$PWD/../bibl/fftw -lfftw3-3 \
+        $$PWD/../bibl/fftw/libfftw3-3.a \
+        $$PWD/../bibl/fftw/libfftw3f-3.a \
+        $$PWD/../bibl/fftw/libfftw3l-3.a \
+        -L$$PWD/../bibl/rtl-sdr-master -lrtlsdr \
+        -L$$PWD/../bibl/libusb libusb-1.0
+
+# Определения
 DEFINES += QT_DEPRECATED_WARNINGS
 
-# You can also make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
+# Источники и заголовочные файлы
 SOURCES += \
     dataloader.cpp \
     main.cpp \
@@ -42,7 +41,7 @@ HEADERS += \
 FORMS += \
     form.ui
 
-# Default rules for deployment.
+# Правила по умолчанию для развертывания
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
